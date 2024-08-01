@@ -16,8 +16,14 @@ import {
 import { Button } from '../ui/button'
 import { FormError } from '../form-error'
 import { FormSuccess } from '../form-success'
+import { useState, useTransition } from 'react'
+import { login } from '@/actions/login'
 
 export function LoginForm() {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | undefined>("")
+  const [success, setSuccess] = useState<string | undefined>("")
+
   const form = useForm<TLoginSchema>({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
@@ -27,7 +33,16 @@ export function LoginForm() {
   })
 
   const onSubmit = (values: TLoginSchema) => {
-    console.log(values)
+    setError("")
+    setSuccess("")
+
+    startTransition(() => {
+      login(values)
+        .then((data) => {
+          setError(data.error)
+          setSuccess(data.success)
+        })
+    })
   }
 
   return (
@@ -54,6 +69,7 @@ export function LoginForm() {
                       {...field}
                       placeholder='Johndoe@exmaple.com'
                       type='email'
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage/>
@@ -72,6 +88,7 @@ export function LoginForm() {
                       {...field}
                       placeholder='password'
                       type='password'
+                      disabled={isPending}
                     />
                   </FormControl>
                   <FormMessage/>
@@ -81,16 +98,17 @@ export function LoginForm() {
           </div>
 
           <FormError
-            message=''
+            message={error}
           />
           
           <FormSuccess
-            message=''
+            message={success}
           />
 
           <Button
             type='submit'
             className='w-full'
+            disabled={isPending}
           >
             Login
           </Button>
