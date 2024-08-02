@@ -4,6 +4,8 @@ import { LoginSchema, TLoginSchema } from "@/schemas"
 import { signIn } from '@/auth'
 import { DEFAULT_LOGIN_REDIRECT } from '@/route'
 import { AuthError } from "next-auth"
+import { getUserByEmail } from "@/data/user"
+import { generateVerificationToken } from "@/lib/tokens"
 
 export const login = async (values: TLoginSchema) => {
     const validatedFields = LoginSchema.safeParse(values)
@@ -14,6 +16,19 @@ export const login = async (values: TLoginSchema) => {
 
     if(validatedFields.data) {
         const { email, password } = validatedFields.data
+
+        const existingUser = await getUserByEmail(email)
+
+        // check if not signedin using credentials
+        if(!existingUser || !existingUser.email || !existingUser.password) {
+            return { error: "Invalid credentials"}
+        }
+
+        if(!existingUser.emailVerified) {
+            const verficationToken = await generateVerificationToken(existingUser.email)
+
+            return { success: "Confirmation email sent!"}
+        }
 
         try {
             await signIn('credentials', {

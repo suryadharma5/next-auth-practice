@@ -4,6 +4,7 @@ import { prismaClient } from "@/lib/db";
 import { RegisterSchema, TRegisterSchema } from "@/schemas";
 import bcrypt from "bcryptjs"
 import { getUserByEmail } from "@/data/user"
+import { generateVerificationToken } from "@/lib/tokens";
 
 export async function register(values: TRegisterSchema) {
     const validatedFields = RegisterSchema.safeParse(values)
@@ -30,7 +31,9 @@ export async function register(values: TRegisterSchema) {
         }
     })
 
+    const verificationToken = await generateVerificationToken(email)
+    
     // TODO: Send verification token email
 
-    return { success: "Account created!"}
+    return { success: "Confirmation email sent!"}
 }
