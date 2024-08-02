@@ -52,6 +52,23 @@ export const {
       return token
     }
   },
+  events: {
+    async linkAccount({ user }) {
+      await prismaClient.user.update({
+        where: {
+          id: user.id
+        },
+        data: {
+          emailVerified: new Date()
+        }
+      })
+    }
+  },
+  // next-auth will always redirect to this page if something went wrong
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error"
+  },
   adapter: PrismaAdapter(prismaClient),
   session: { strategy: "jwt" },
   ...authConfig,
