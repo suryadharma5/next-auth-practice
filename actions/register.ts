@@ -5,6 +5,7 @@ import { RegisterSchema, TRegisterSchema } from "@/schemas";
 import bcrypt from "bcryptjs"
 import { getUserByEmail } from "@/data/user"
 import { generateVerificationToken } from "@/lib/tokens";
+import { sendVerificationEmail } from "@/lib/mail";
 
 export async function register(values: TRegisterSchema) {
     const validatedFields = RegisterSchema.safeParse(values)
@@ -33,7 +34,10 @@ export async function register(values: TRegisterSchema) {
 
     const verificationToken = await generateVerificationToken(email)
     
-    // TODO: Send verification token email
+    await sendVerificationEmail(
+        verificationToken.email,
+        verificationToken.token
+    )
 
     return { success: "Confirmation email sent!"}
 }

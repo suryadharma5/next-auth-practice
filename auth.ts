@@ -14,6 +14,7 @@ export const {
   callbacks: {
     // handle if user not verified, then user is not allow signin
     async signIn({ user, account }) {
+      // console.log({account, user})
       //Allow oauth without email verification
       if (account?.provider !== 'credentials') {
         return true
