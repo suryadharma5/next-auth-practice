@@ -1,7 +1,6 @@
 "use client"
 
 import { CardWrapper } from './card-wrapper'
-import { LoginSchema, TLoginSchema } from '@/schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Input } from '../ui/input'
 import { useForm } from 'react-hook-form'
@@ -17,48 +16,46 @@ import { Button } from '../ui/button'
 import { FormError } from '../form-error'
 import { FormSuccess } from '../form-success'
 import { useState, useTransition } from 'react'
-import { login } from '@/actions/login'
+import { NewPasswordSchema, TNewPasswordSchema } from '@/schemas'
+import { reset } from '@/actions/reset'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { newPassword } from '@/actions/new-password'
 
-export function LoginForm() {
+export function NewPasswordForm() {
   const searchParams = useSearchParams()
-  const urlError = searchParams.get("error") === "OAuthAccountNotLinked" 
-    ? "Email already used!"
-    : ""
-
+  const token = searchParams.get('token')
 
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | undefined>("")
   const [success, setSuccess] = useState<string | undefined>("")
 
-  const form = useForm<TLoginSchema>({
-    resolver: zodResolver(LoginSchema),
+  const form = useForm<TNewPasswordSchema>({
+    resolver: zodResolver(NewPasswordSchema),
     defaultValues: {
-      email: "",
       password: ""
     }
   })
 
-  const onSubmit = (values: TLoginSchema) => {
+  const onSubmit = (values: TNewPasswordSchema) => {
     setError("")
     setSuccess("")
 
     startTransition(() => {
-      login(values)
+      newPassword(values, token)
         .then((data) => {
           setError(data?.error)
           setSuccess(data?.success)
         })
     })
+
+    console.log(values)
   }
 
   return (
     <CardWrapper
-        headerLabel='Welcome Back'
-        backButtonLabel="Don't have an account"
-        backButtonHref='/auth/register'
-        showSocial
+        headerLabel='Enter a new password'
+        backButtonLabel="Back to login"
+        backButtonHref='/auth/login'
     >
       <Form {...form}>
         <form 
@@ -66,25 +63,6 @@ export function LoginForm() {
           className='space-y-6'
         >
           <div className='space-y-4'>
-            <FormField
-              control={form.control}
-              name="email"
-              render= {({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder='Johndoe@exmaple.com'
-                      type='email'
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="password"
@@ -99,18 +77,6 @@ export function LoginForm() {
                       disabled={isPending}
                     />
                   </FormControl>
-                  <Button
-                    size={'sm'}
-                    variant={'link'}
-                    asChild
-                    className='px-0 font-normal'
-                  >
-                    <Link
-                      href="/auth/reset"
-                    >
-                      Forgot Password
-                    </Link>
-                  </Button>
                   <FormMessage/>
                 </FormItem>
               )}
@@ -118,7 +84,7 @@ export function LoginForm() {
           </div>
 
           <FormError
-            message={error || urlError}
+            message={error}
           />
           
           <FormSuccess
@@ -130,7 +96,7 @@ export function LoginForm() {
             className='w-full'
             disabled={isPending}
           >
-            Login
+            Reset password
           </Button>
         </form>
       </Form>
